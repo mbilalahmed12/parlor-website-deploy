@@ -1,6 +1,7 @@
 const express = require('express');
 const Service = require('../models/Service');
 const auth = require('../middleware/auth');
+const authorize = require('../middleware/authorize');
 const router = express.Router();
 
 // Get all active services
@@ -25,7 +26,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create service (admin only)
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
     const { name, description, price, duration, category, image } = req.body;
 
@@ -46,7 +47,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Update service (admin only)
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
     const { name, description, price, duration, category, image, featured, active } = req.body;
 
@@ -71,7 +72,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // Delete service (admin only)
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
     const service = await Service.findByIdAndDelete(req.params.id);
     if (!service) return res.status(404).json({ message: 'Service not found' });

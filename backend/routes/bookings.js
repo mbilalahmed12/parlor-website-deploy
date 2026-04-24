@@ -1,6 +1,7 @@
 const express = require('express');
 const Booking = require('../models/Booking');
 const auth = require('../middleware/auth');
+const authorize = require('../middleware/authorize');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
 
@@ -62,7 +63,7 @@ router.get('/:id', auth, async (req, res) => {
 });
 
 // Update booking status (admin only)
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
     const { status } = req.body;
 
@@ -80,7 +81,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // Delete booking (admin only)
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
     const booking = await Booking.findByIdAndDelete(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });

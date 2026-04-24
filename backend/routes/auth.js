@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
 const router = express.Router();
 
 // Register (admin setup)
@@ -24,12 +25,15 @@ router.post('/register', [
       return res.status(400).json({ message: 'User already exists' });
     }
 
+    const usersCount = await User.countDocuments();
+    const role = usersCount === 0 ? 'owner' : 'admin';
+
     // Create new user
     user = new User({
       name,
       email,
       password,
-      role: 'admin'
+      role
     });
 
     await user.save();
@@ -39,7 +43,7 @@ router.post('/register', [
       expiresIn: process.env.JWT_EXPIRE
     });
 
-    res.json({ token, user: { id: user._id, email: user.email, name: user.name } });
+    res.json({ token, user: { id: user._id, email: user.email, name: user.name, role: user.role } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -75,10 +79,22 @@ router.post('/login', [
       expiresIn: process.env.JWT_EXPIRE
     });
 
-    res.json({ token, user: { id: user._id, email: user.email, name: user.name } });
+    res.json({ token, user: { id: user._id, email: user.email, name: user.name, role: user.role } });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
+});
+
+// Current authenticated user
+router.get('/me', auth, async (req, res) => {
+  res.json({
+    user: {
+      id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+    },
+  });
 });
 
 module.exports = router;

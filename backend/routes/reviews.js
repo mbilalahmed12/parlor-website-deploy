@@ -1,6 +1,7 @@
 const express = require('express');
 const Review = require('../models/Review');
 const auth = require('../middleware/auth');
+const authorize = require('../middleware/authorize');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
 
@@ -57,7 +58,7 @@ router.get('/admin/all', auth, async (req, res) => {
 });
 
 // Approve review (admin only)
-router.put('/:id/approve', auth, async (req, res) => {
+router.put('/:id/approve', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
     const review = await Review.findById(req.params.id);
     if (!review) return res.status(404).json({ message: 'Review not found' });
@@ -74,7 +75,7 @@ router.put('/:id/approve', auth, async (req, res) => {
 });
 
 // Reject/Delete review (admin only)
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
     const review = await Review.findByIdAndDelete(req.params.id);
     if (!review) return res.status(404).json({ message: 'Review not found' });

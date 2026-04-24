@@ -23,6 +23,7 @@ export default function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { user, token, logout } = useAuthStore();
   const router = useRouter();
+  const canManageWebsite = user?.role === 'owner' || user?.role === 'admin';
 
   useEffect(() => {
     if (!token) {
@@ -30,13 +31,20 @@ export default function Admin() {
     }
   }, [token, router]);
 
+  useEffect(() => {
+    if (token && user && !canManageWebsite) {
+      toast.error('You do not have permission to access admin controls.');
+      router.push('/');
+    }
+  }, [token, user, canManageWebsite, router]);
+
   const handleLogout = () => {
     logout();
     router.push('/');
     toast.success('Logged out successfully');
   };
 
-  if (!token) return null;
+  if (!token || !user) return null;
 
   return (
     <>
@@ -134,7 +142,7 @@ export default function Admin() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
             >
-              {activeTab === 'dashboard' && <DashboardView />}
+              {activeTab === 'dashboard' && <DashboardView user={user} canManageWebsite={canManageWebsite} />}
               {activeTab === 'services' && <Services />}
               {activeTab === 'bookings' && <Bookings />}
               {activeTab === 'reviews' && <Reviews />}
@@ -147,7 +155,7 @@ export default function Admin() {
   );
 }
 
-function DashboardView() {
+function DashboardView({ user, canManageWebsite }) {
   const [stats, setStats] = useState({
     totalBookings: 0,
     pendingReviews: 0,
@@ -167,6 +175,12 @@ function DashboardView() {
     { title: 'Total Bookings', value: stats.totalBookings, icon: '📅', color: 'from-blue-500 to-cyan-500' },
     { title: 'Pending Reviews', value: stats.pendingReviews, icon: '⏳', color: 'from-yellow-500 to-orange-500' },
     { title: 'Active Services', value: stats.activeServices, icon: '✨', color: 'from-purple-500 to-pink-500' },
+    {
+      title: 'Owner Access',
+      value: canManageWebsite ? `Enabled (${user?.role || 'unknown'})` : 'Disabled',
+      icon: '🔐',
+      color: canManageWebsite ? 'from-emerald-500 to-green-600' : 'from-gray-500 to-gray-700',
+    },
   ];
 
   return (
@@ -182,7 +196,7 @@ function DashboardView() {
         >
           <div className="text-4xl mb-4">{card.icon}</div>
           <h3 className="text-lg font-semibold mb-2">{card.title}</h3>
-          <p className="text-4xl font-bold">{card.value}</p>
+          <p className="text-2xl md:text-3xl font-bold break-words">{card.value}</p>
         </motion.div>
       ))}
     </div>

@@ -46,6 +46,14 @@ export const useAuthStore = create((set) => ({
     const token = localStorage.getItem('token');
     if (token) {
       set({ token });
+      authAPI.me()
+        .then((response) => {
+          set({ user: response.data.user });
+        })
+        .catch(() => {
+          localStorage.removeItem('token');
+          set({ token: null, user: null });
+        });
     }
   },
 }));

@@ -1,6 +1,7 @@
 const express = require('express');
 const Settings = require('../models/Settings');
 const auth = require('../middleware/auth');
+const authorize = require('../middleware/authorize');
 const router = express.Router();
 
 // Get settings (public)
@@ -18,7 +19,7 @@ router.get('/', async (req, res) => {
 });
 
 // Update settings (admin only)
-router.put('/', auth, async (req, res) => {
+router.put('/', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
     let settings = await Settings.findOne();
     if (!settings) {
