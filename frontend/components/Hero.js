@@ -120,34 +120,53 @@ export default function Hero({ activeTab, onTabChange }) {
           {locationText}
         </div>
 
-        <div className="grid flex-1 items-center gap-10 lg:grid-cols-[1.05fr_0.8fr_0.9fr] lg:gap-12">
-          <div className="max-w-[700px]">
+        <div className="grid flex-1 items-center gap-10 lg:grid-cols-[1fr_auto] lg:gap-12">
+          <div className="max-w-[760px] pl-6 lg:pl-0">
             <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}
-              className="max-w-[620px] whitespace-pre-line text-[4rem] font-black leading-[0.9] tracking-[-0.08em] text-black sm:text-[5rem] lg:text-[6.2rem]"
-              style={{ fontFamily: 'Arial Narrow, Helvetica Neue, Arial, sans-serif' }}
+              className="whitespace-pre-line text-[3.6rem] font-extrabold leading-[0.91] tracking-[-0.06em] text-black sm:text-[4.2rem] md:text-[5rem] lg:text-[6.8rem]"
+              style={{ fontFamily: 'Oswald, Arial Narrow, Arial, sans-serif' }}
             >
-              {headline}
+              GET A DISCOUNT
+              <br />
+              UP TO 50% FOR
+              <br />
+              ALL SERVICES AT
+              <br />
+              OUR BEAUTY
+              <br />
+              SALON IN DUBAI
             </motion.h1>
+            <p className="mt-6 max-w-[540px] text-sm uppercase tracking-widest text-[#2d261f]">{locationText}</p>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="relative mx-auto w-full max-w-[380px] lg:max-w-none"
-          >
-            <div className="relative h-[460px] overflow-hidden rounded-[34px] bg-[#b9c09b] shadow-[0_20px_60px_rgba(0,0,0,0.18)] lg:h-[620px]">
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url('${HERO_IMAGE}')` }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#b5be97]/35 via-transparent to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#c3c9aa] via-transparent to-transparent" />
-            </div>
-          </motion.div>
+          <div className="relative w-full max-w-[520px]">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.12 }}
+              className="relative mx-auto h-[520px] lg:h-[620px]"
+            >
+              {/* Portrait cutout */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img
+                  src={HERO_IMAGE}
+                  alt="Portrait"
+                  className="portrait-cutout h-[520px] lg:h-[620px] object-cover"
+                />
+              </div>
+
+              {/* Promo card */}
+              <div className="absolute right-0 top-1/3 w-[320px] lg:w-[360px] rounded-3xl bg-[#efe9d7] p-6 shadow-[0_20px_40px_rgba(0,0,0,0.18)] text-[#2d261f]">
+                <div className="text-sm font-medium opacity-80">Promotion will end in:</div>
+                <div className="mt-4 mb-4 text-[2.2rem] font-mono font-semibold">{timeLeft}</div>
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-block w-full rounded-full bg-black px-6 py-3 text-center text-white font-medium">{settings?.heroCtaText || 'Book now'}</a>
+                <div className="mt-3 text-xs opacity-70">Available for new customers only</div>
+              </div>
+            </motion.div>
+          </div>
 
           <motion.div
             initial={{ opacity: 0, x: 20 }}
