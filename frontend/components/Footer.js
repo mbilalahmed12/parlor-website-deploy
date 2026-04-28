@@ -59,7 +59,7 @@ export default function Footer() {
               />
             )}
             <h3 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent mb-3">
-              {settings?.parlorName || 'Elite Parlor'}
+              {settings?.parlorName || 'Elegant Edge'}
             </h3>
             <p className="text-gray-400 mb-4">
               {settings?.parlorDescription || 'Your premium beauty and wellness destination'}
@@ -148,7 +148,7 @@ export default function Footer() {
           viewport={{ once: true }}
           className="flex flex-col md:flex-row justify-between items-center text-gray-400 text-sm"
         >
-          <p>&copy; 2024 {settings?.parlorName || 'Elite Parlor'}. All rights reserved.</p>
+          <p>&copy; 2024 {settings?.parlorName || 'Elegant Edge'}. All rights reserved.</p>
           <div className="flex gap-4 mt-4 md:mt-0">
             <Link href="/" className="hover:text-primary transition-colors">
               Home
