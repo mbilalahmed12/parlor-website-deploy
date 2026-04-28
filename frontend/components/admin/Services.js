@@ -14,10 +14,14 @@ export default function Services() {
     description: '',
     price: '',
     duration: '',
-    category: 'other',
+    category: 'hair',
+    categoryLabel: 'Hair',
+    audience: 'her',
+    categoryVideoUrl: '',
     mediaType: 'none',
     mediaUrl: '',
     featured: false,
+    active: true,
   });
 
   useEffect(() => {
@@ -27,7 +31,7 @@ export default function Services() {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const response = await servicesAPI.getAll();
+      const response = await servicesAPI.getAllAdmin();
       setServices(response.data);
     } catch (error) {
       toast.error('Failed to fetch services');
@@ -47,11 +51,17 @@ export default function Services() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        ...formData,
+        price: Number(formData.price),
+        duration: Number(formData.duration),
+      };
+
       if (editingId) {
-        await servicesAPI.update(editingId, formData);
+        await servicesAPI.update(editingId, payload);
         toast.success('Service updated successfully');
       } else {
-        await servicesAPI.create(formData);
+        await servicesAPI.create(payload);
         toast.success('Service created successfully');
       }
       fetchServices();
@@ -64,8 +74,12 @@ export default function Services() {
   const handleEdit = (service) => {
     setFormData({
       ...service,
+      categoryLabel: service.categoryLabel || service.category || '',
+      audience: service.audience || 'her',
+      categoryVideoUrl: service.categoryVideoUrl || '',
       mediaType: service.mediaType || 'none',
       mediaUrl: service.mediaUrl || service.image || '',
+      active: service.active !== false,
     });
     setEditingId(service._id);
     setShowModal(true);
@@ -89,10 +103,14 @@ export default function Services() {
       description: '',
       price: '',
       duration: '',
-      category: 'other',
+      category: 'hair',
+      categoryLabel: 'Hair',
+      audience: 'her',
+      categoryVideoUrl: '',
       mediaType: 'none',
       mediaUrl: '',
       featured: false,
+      active: true,
     });
     setEditingId(null);
     setShowModal(false);
@@ -129,6 +147,9 @@ export default function Services() {
               className="bg-white rounded-lg p-6 shadow-lg border-l-4 border-primary"
             >
               <h4 className="text-lg font-bold mb-2">{service.name}</h4>
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                {service.audience === 'him' ? 'For Him' : 'For Her'} | {service.categoryLabel || service.category}
+              </p>
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">{service.description}</p>
               <div className="flex justify-between items-center mb-4">
                 <div>
@@ -141,6 +162,9 @@ export default function Services() {
                   </span>
                 )}
               </div>
+              {service.active === false && (
+                <p className="mb-3 inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">Inactive</p>
+              )}
               <div className="flex gap-2">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -226,18 +250,43 @@ export default function Services() {
               </div>
 
               <select
-                name="category"
-                value={formData.category}
+                name="audience"
+                value={formData.audience || 'her'}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary"
               >
-                <option value="hair">Hair</option>
-                <option value="skin">Skin</option>
-                <option value="nails">Nails</option>
-                <option value="makeup">Makeup</option>
-                <option value="massage">Massage</option>
-                <option value="other">Other</option>
+                <option value="her">For Her</option>
+                <option value="him">For Him</option>
               </select>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  placeholder="Category key (e.g. brows-lashes)"
+                  required
+                  className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary"
+                />
+                <input
+                  type="text"
+                  name="categoryLabel"
+                  value={formData.categoryLabel || ''}
+                  onChange={handleChange}
+                  placeholder="Category label"
+                  className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <input
+                type="url"
+                name="categoryVideoUrl"
+                value={formData.categoryVideoUrl || ''}
+                onChange={handleChange}
+                placeholder="Category background video URL"
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary"
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <select
@@ -269,6 +318,17 @@ export default function Services() {
                   className="w-5 h-5 text-primary rounded"
                 />
                 <span className="text-gray-700 font-medium">Mark as featured</span>
+              </label>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="active"
+                  checked={Boolean(formData.active)}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-primary rounded"
+                />
+                <span className="text-gray-700 font-medium">Active (visible on website)</span>
               </label>
 
               <div className="flex gap-3">

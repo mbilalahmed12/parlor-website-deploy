@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { FiMenu, FiX, FiLogOut } from 'react-icons/fi';
+import { FaWhatsapp } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/store';
 import { useRouter } from 'next/router';
 import { settingsAPI } from '@/lib/api';
@@ -30,15 +31,20 @@ export default function Header() {
   };
 
   const menuItems = [
-    { label: 'Home', href: '/' },
-    { label: 'Services', href: '/#services' },
-    { label: 'Testimonials', href: '/#testimonials' },
+    { label: 'Nails', href: '/#services' },
+    { label: 'Hair', href: '/#services' },
+    { label: 'Brows & Lashes', href: '/#services' },
+    { label: 'Prices', href: '/#services' },
+    { label: 'Blog', href: '/#services' },
     { label: 'Contact', href: '/#contact' },
   ];
 
+  const whatsappDigits = String(settings?.socialLinks?.whatsapp || settings?.contactPhone || '').replace(/[^\d]/g, '');
+  const whatsappHref = whatsappDigits ? `https://wa.me/${whatsappDigits}` : '/booking';
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg">
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#c3c9aa]/80 backdrop-blur-md">
+      <nav className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-4 lg:px-10">
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -46,15 +52,8 @@ export default function Header() {
           transition={{ duration: 0.5 }}
         >
           <Link href="/" className="flex items-center gap-3">
-            {settings?.parlorLogoUrl && (
-              <img
-                src={settings.parlorLogoUrl}
-                alt="Parlor logo"
-                className="w-10 h-10 rounded-full object-cover border border-gray-200"
-              />
-            )}
-            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {settings?.parlorName || 'Elite Parlor'}
+            <span className="text-[2.2rem] font-semibold leading-none tracking-[-0.08em] text-black" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
+              it&apos;s beauty
             </span>
           </Link>
         </motion.div>
@@ -64,7 +63,7 @@ export default function Header() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="hidden md:flex items-center gap-8"
+          className="hidden flex-1 items-center justify-center gap-8 lg:flex"
         >
           {menuItems.map((item, i) => (
             <motion.div
@@ -74,12 +73,14 @@ export default function Header() {
             >
               <Link
                 href={item.href}
-                className="text-gray-700 hover:text-primary transition-colors font-medium"
+                className="text-[0.92rem] uppercase tracking-[0.12em] text-[#2d261f] transition-colors hover:text-black"
               >
                 {item.label}
               </Link>
             </motion.div>
           ))}
+          <span className="rounded-full bg-black px-4 py-1 text-[0.78rem] font-semibold text-white">Dubai</span>
+          <span className="rounded-full border border-black/40 px-4 py-1 text-[0.78rem] text-black">Abu Dhabi</span>
         </motion.div>
 
         {/* Right Actions */}
@@ -87,38 +88,52 @@ export default function Header() {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
-          className="hidden md:flex items-center gap-4"
+          className="hidden items-center gap-3 lg:flex"
         >
-          {token ? (
+          <a
+            href={whatsappHref}
+            target={whatsappHref.startsWith('http') ? '_blank' : undefined}
+            rel={whatsappHref.startsWith('http') ? 'noopener noreferrer' : undefined}
+            className="grid h-12 w-12 place-items-center rounded-xl bg-black text-white transition-transform hover:-translate-y-0.5"
+            aria-label="WhatsApp"
+          >
+            <FaWhatsapp size={20} />
+          </a>
+          <a
+            href={settings?.socialLinks?.instagram || 'https://instagram.com'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="grid h-12 w-12 place-items-center rounded-xl bg-black text-white transition-transform hover:-translate-y-0.5"
+            aria-label="Instagram"
+          >
+            <span className="text-lg font-semibold">◎</span>
+          </a>
+          <a
+            href={whatsappHref}
+            target={whatsappHref.startsWith('http') ? '_blank' : undefined}
+            rel={whatsappHref.startsWith('http') ? 'noopener noreferrer' : undefined}
+            className="rounded-full bg-black px-6 py-3 text-lg font-semibold text-white transition-transform hover:-translate-y-0.5"
+          >
+            {settings?.contactPhone || '+971 54 247 8604'}
+          </a>
+          {token && (
             <>
-              <Link href="/admin" className="text-primary font-medium hover:underline">
+              <Link href="/admin" className="text-sm font-semibold uppercase tracking-[0.12em] text-black underline decoration-black/40 underline-offset-4">
                 Dashboard
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                className="flex items-center gap-2 rounded-full bg-black px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#232323]"
               >
                 <FiLogOut /> Logout
               </button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" className="text-gray-700 hover:text-primary transition-colors">
-                Login
-              </Link>
-              <Link
-                href="/booking"
-                className="px-6 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg hover:shadow-lg transition-all"
-              >
-                Book Now
-              </Link>
             </>
           )}
         </motion.div>
 
         {/* Mobile Menu Button */}
         <div className="md:hidden">
-          <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700 text-2xl">
+          <button onClick={() => setIsOpen(!isOpen)} className="text-black text-2xl">
             {isOpen ? <FiX /> : <FiMenu />}
           </button>
         </div>
@@ -129,14 +144,14 @@ export default function Header() {
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
         transition={{ duration: 0.3 }}
-        className="md:hidden overflow-hidden border-t"
+        className="lg:hidden overflow-hidden border-t border-black/15"
       >
-        <div className="px-4 py-4 space-y-3 bg-white">
+        <div className="space-y-3 bg-[#c3c9aa] px-4 py-4">
           {menuItems.map((item) => (
             <Link
               key={item.label}
               href={item.href}
-              className="block text-gray-700 hover:text-primary font-medium"
+              className="block text-sm uppercase tracking-[0.12em] text-black"
               onClick={() => setIsOpen(false)}
             >
               {item.label}
@@ -144,28 +159,20 @@ export default function Header() {
           ))}
           {token ? (
             <>
-              <Link href="/admin" className="block text-primary font-medium">
+              <Link href="/admin" className="block text-sm font-semibold uppercase tracking-[0.12em] text-black">
                 Dashboard
               </Link>
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600"
+                className="w-full rounded-full bg-black px-4 py-2 text-left text-white"
               >
                 Logout
               </button>
             </>
           ) : (
-            <>
-              <Link href="/login" className="block text-gray-700 font-medium">
-                Login
-              </Link>
-              <Link
-                href="/booking"
-                className="block px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg text-center"
-              >
-                Book Now
-              </Link>
-            </>
+            <a href={whatsappHref} className="block rounded-full bg-black px-4 py-3 text-center text-white">
+              Book Now
+            </a>
           )}
         </div>
       </motion.div>

@@ -33,6 +33,11 @@ router.put('/', auth, authorize('owner'), async (req, res) => {
       heroVideoUrl,
       heroTitle,
       heroSubtitle,
+      heroCtaText,
+      offerBanner,
+      whyUsTitle,
+      whyUsPoints,
+      customizeCtaText,
       contactEmail,
       contactPhone,
       contactAddress,
@@ -40,15 +45,28 @@ router.put('/', auth, authorize('owner'), async (req, res) => {
       workingHours
     } = req.body;
 
-    if (parlorName) settings.parlorName = parlorName;
-    if (parlorDescription) settings.parlorDescription = parlorDescription;
+    if (parlorName !== undefined) settings.parlorName = parlorName;
+    if (parlorDescription !== undefined) settings.parlorDescription = parlorDescription;
     if (parlorLogoUrl !== undefined) settings.parlorLogoUrl = parlorLogoUrl;
     if (heroVideoUrl !== undefined) settings.heroVideoUrl = heroVideoUrl;
-    if (heroTitle) settings.heroTitle = heroTitle;
-    if (heroSubtitle) settings.heroSubtitle = heroSubtitle;
-    if (contactEmail) settings.contactEmail = contactEmail;
-    if (contactPhone) settings.contactPhone = contactPhone;
-    if (contactAddress) settings.contactAddress = contactAddress;
+    if (heroTitle !== undefined) settings.heroTitle = heroTitle;
+    if (heroSubtitle !== undefined) settings.heroSubtitle = heroSubtitle;
+    if (heroCtaText !== undefined) settings.heroCtaText = heroCtaText;
+
+    if (offerBanner !== undefined) {
+      settings.offerBanner = {
+        ...settings.offerBanner,
+        ...offerBanner,
+      };
+    }
+
+    if (whyUsTitle !== undefined) settings.whyUsTitle = whyUsTitle;
+    if (whyUsPoints !== undefined) settings.whyUsPoints = whyUsPoints;
+    if (customizeCtaText !== undefined) settings.customizeCtaText = customizeCtaText;
+
+    if (contactEmail !== undefined) settings.contactEmail = contactEmail;
+    if (contactPhone !== undefined) settings.contactPhone = contactPhone;
+    if (contactAddress !== undefined) settings.contactAddress = contactAddress;
     if (socialLinks) settings.socialLinks = { ...settings.socialLinks, ...socialLinks };
     if (workingHours) settings.workingHours = workingHours;
 

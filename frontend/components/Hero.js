@@ -1,132 +1,187 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { settingsAPI } from '@/lib/api';
-import Link from 'next/link';
+import { FaWhatsapp } from 'react-icons/fa';
+import { FiChevronRight } from 'react-icons/fi';
 
-const FORCED_HERO_VIDEO = 'https://videos.pexels.com/video-files/4786784/4786784-uhd_3840_2160_30fps.mp4';
-const COMPATIBILITY_FALLBACK_VIDEO = 'https://videos.pexels.com/video-files/5682545/5682545-sd_640_360_25fps.mp4';
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80';
 
-export default function Hero() {
+const formatTimeLeft = (targetDate) => {
+  if (!targetDate) return '00 : 00 : 00 : 00';
+  const ms = new Date(targetDate).getTime() - Date.now();
+  if (ms <= 0) return '00 : 00 : 00 : 00';
+
+  const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+  const minutes = Math.floor((ms / (1000 * 60)) % 60);
+  const seconds = Math.floor((ms / 1000) % 60);
+
+  return `${String(days).padStart(2, '0')} : ${String(hours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(seconds).padStart(2, '0')}`;
+};
+
+const buildWhatsAppUrl = (phone, text) => {
+  const digits = String(phone || '').replace(/[^\d]/g, '');
+  if (!digits) return '/booking';
+  return `https://wa.me/${digits}?text=${encodeURIComponent(text || 'Hi, I would like to book a service.')}`;
+};
+
+export default function Hero({ activeTab, onTabChange }) {
   const [settings, setSettings] = useState(null);
-  const [heroVideo, setHeroVideo] = useState(FORCED_HERO_VIDEO);
-  const [hasFallbackTried, setHasFallbackTried] = useState(false);
-  const videoRef = useRef(null);
+  const [timeLeft, setTimeLeft] = useState('00 : 00 : 00 : 00');
 
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         const response = await settingsAPI.get();
         setSettings(response.data);
-        setHeroVideo(FORCED_HERO_VIDEO);
       } catch (error) {
         console.error('Failed to fetch settings:', error);
       }
     };
+
     fetchSettings();
   }, []);
 
   useEffect(() => {
-    const videoEl = videoRef.current;
-    if (!videoEl) return;
+    setTimeLeft(formatTimeLeft(settings?.offerBanner?.endsAt));
+    const timer = setInterval(() => {
+      setTimeLeft(formatTimeLeft(settings?.offerBanner?.endsAt));
+    }, 1000);
 
-    videoEl.load();
-    const playPromise = videoEl.play();
-    if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(() => {
-        // Keep silent if browser blocks autoplay in specific environments.
-      });
-    }
-  }, [heroVideo]);
+    return () => clearInterval(timer);
+  }, [settings?.offerBanner?.endsAt]);
 
-  const handleVideoError = () => {
-    if (!hasFallbackTried && heroVideo !== FORCED_HERO_VIDEO) {
-      setHasFallbackTried(true);
-      setHeroVideo(FORCED_HERO_VIDEO);
-      return;
-    }
+  const whatsappUrl = useMemo(
+    () => buildWhatsAppUrl(settings?.socialLinks?.whatsapp || settings?.contactPhone, `Hi, I want to book at ${settings?.parlorName || 'Elegant Edge'}.`),
+    [settings?.contactPhone, settings?.parlorName, settings?.socialLinks?.whatsapp]
+  );
 
-    if (heroVideo !== COMPATIBILITY_FALLBACK_VIDEO) {
-      setHeroVideo(COMPATIBILITY_FALLBACK_VIDEO);
-    }
-  };
+  const bookUrl = useMemo(() => {
+    const phone = String(settings?.socialLinks?.whatsapp || settings?.contactPhone || '').replace(/[^\d]/g, '');
+    return phone ? `https://wa.me/${phone}` : '/booking';
+  }, [settings?.contactPhone, settings?.socialLinks?.whatsapp]);
+
+  const headline = settings?.heroTitle || 'Welcome to Elegant Edge\nWhere beauty is personalized';
+  const locationText = 'BUSINESS BAY, DUBAI MARINA, INTERNET CITY, DIFC, ABU DHABI';
 
   return (
-    <section className="relative h-screen w-full overflow-hidden pt-16">
-      {/* Video Background */}
-      <video
-        key={heroVideo}
-        ref={videoRef}
-        autoPlay
-        defaultMuted
-        muted
-        loop
-        preload="auto"
-        playsInline
-        onError={handleVideoError}
-        className="absolute inset-0 w-full h-full object-cover"
-      >
-        <source src={heroVideo} type="video/mp4" />
-      </video>
+    <section className="relative min-h-screen overflow-hidden bg-[#c3c9aa] pt-24 text-secondary">
+      <div className="absolute inset-0 opacity-30 [background-image:radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.45),transparent_26%),radial-gradient(circle_at_80%_25%,rgba(255,255,255,0.25),transparent_20%),radial-gradient(circle_at_50%_100%,rgba(255,255,255,0.15),transparent_25%)]" />
 
-      {/* Overlay gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60" />
+      <div className="relative mx-auto flex min-h-[calc(100vh-6rem)] max-w-[1500px] flex-col px-4 pb-10 lg:px-10">
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <div className="text-[3rem] font-semibold leading-none tracking-[-0.08em] text-secondary md:text-[4.5rem]" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
+            it&apos;s beauty
+          </div>
 
-      {/* Content */}
-      <div className="relative z-10 h-full flex flex-col items-center justify-center text-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            {settings?.heroTitle || 'Welcome to Elite Parlor'}
-          </h1>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          <p className="text-xl md:text-2xl text-gray-200 mb-8 max-w-2xl">
-            {settings?.heroSubtitle || 'Experience luxury and transformation'}
-          </p>
-        </motion.div>
-
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-col md:flex-row gap-4"
-        >
-          <Link href="/booking">
-            <motion.button
-              whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(139, 92, 246, 0.3)' }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white text-lg font-bold rounded-lg transition-all"
+          <div className="flex items-center gap-3">
+            <a
+              href={whatsappUrl}
+              target={whatsappUrl.startsWith('http') ? '_blank' : undefined}
+              rel={whatsappUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+              className="grid h-12 w-12 place-items-center rounded-xl bg-secondary text-light shadow-sm transition-transform hover:-translate-y-0.5"
+              aria-label="WhatsApp"
             >
-              Book Now
-            </motion.button>
-          </Link>
-          <motion.button
-            whileHover={{ scale: 1.05, boxShadow: '0 20px 40px rgba(255, 255, 255, 0.1)' }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => window.scrollTo({ top: window.innerHeight + 500, behavior: 'smooth' })}
-            className="px-8 py-4 bg-white/10 text-white text-lg font-bold rounded-lg border-2 border-white backdrop-blur-sm hover:bg-white/20 transition-all"
-          >
-            View Services
-          </motion.button>
-        </motion.div>
+              <FaWhatsapp size={22} />
+            </a>
+            <a
+              href={settings?.socialLinks?.instagram || 'https://instagram.com'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="grid h-12 w-12 place-items-center rounded-xl bg-secondary text-light shadow-sm transition-transform hover:-translate-y-0.5"
+              aria-label="Instagram"
+            >
+              <span className="text-lg font-semibold">◎</span>
+            </a>
+            <a
+              href={bookUrl}
+              target={bookUrl.startsWith('http') ? '_blank' : undefined}
+              rel={bookUrl.startsWith('http') ? 'noopener noreferrer' : undefined}
+              className="rounded-full bg-black px-7 py-3 text-lg font-semibold text-white shadow-sm transition-transform hover:-translate-y-0.5"
+            >
+              {settings?.contactPhone || '+971 54 247 8604'}
+            </a>
+          </div>
+        </div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-        >
-          <div className="text-white text-3xl">↓</div>
-        </motion.div>
+        <div className="mb-10 flex flex-wrap items-center justify-center gap-4 text-[0.95rem] uppercase tracking-[0.18em] text-[#2d261f] lg:justify-start">
+          {['Nails', 'Hair', 'Brows & Lashes', 'Prices', 'Blog', 'Contact'].map((item) => (
+            <button key={item} type="button" className="flex items-center gap-2 transition-colors hover:text-black" onClick={() => item === 'Contact' ? document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) : document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}>
+              <span>{item}</span>
+              {item !== 'Contact' && <FiChevronRight size={14} className="opacity-60" />}
+            </button>
+          ))}
+          <span className="rounded-full bg-black px-4 py-1 text-[0.8rem] font-semibold tracking-normal text-white">Dubai</span>
+          <span className="rounded-full border border-black/50 px-4 py-1 text-[0.8rem] tracking-normal text-secondary">Abu Dhabi</span>
+        </div>
+
+        <div className="mb-8 text-center text-[1rem] font-medium uppercase tracking-[0.16em] text-secondary lg:text-left">
+          {locationText}
+        </div>
+
+        <div className="grid flex-1 items-center gap-10 lg:grid-cols-[1.05fr_0.8fr_0.9fr] lg:gap-12">
+          <div className="max-w-[700px]">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="max-w-[620px] whitespace-pre-line text-[4rem] font-black leading-[0.9] tracking-[-0.08em] text-black sm:text-[5rem] lg:text-[6.2rem]"
+              style={{ fontFamily: 'Arial Narrow, Helvetica Neue, Arial, sans-serif' }}
+            >
+              {headline}
+            </motion.h1>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="relative mx-auto w-full max-w-[380px] lg:max-w-none"
+          >
+            <div className="relative h-[460px] overflow-hidden rounded-[34px] bg-[#b9c09b] shadow-[0_20px_60px_rgba(0,0,0,0.18)] lg:h-[620px]">
+              <div
+                className="absolute inset-0 bg-cover bg-center"
+                style={{ backgroundImage: `url('${HERO_IMAGE}')` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#b5be97]/35 via-transparent to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-[#c3c9aa] via-transparent to-transparent" />
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="mx-auto w-full max-w-[420px] rounded-[36px] bg-[#e8e2c8] p-8 text-center shadow-[0_20px_50px_rgba(0,0,0,0.12)]"
+          >
+            <p className="mb-3 text-[1.1rem] uppercase tracking-[0.14em] text-[#6a6252]">
+              {settings?.offerBanner?.text || 'Offer ending soon'}
+            </p>
+            <div className="mb-4 text-[2.8rem] font-semibold tracking-[0.12em] text-[#8a8876]" style={{ fontFamily: 'Courier New, monospace' }}>
+              {timeLeft}
+            </div>
+            <div className="mb-5 grid grid-cols-4 gap-2 text-[0.82rem] uppercase tracking-[0.25em] text-[#8b8574]">
+              <span>days</span>
+              <span>hours</span>
+              <span>minutes</span>
+              <span>seconds</span>
+            </div>
+            <a href={whatsappUrl} target={whatsappUrl.startsWith('http') ? '_blank' : undefined} rel={whatsappUrl.startsWith('http') ? 'noopener noreferrer' : undefined} className="mx-auto mb-6 inline-flex w-full max-w-[250px] items-center justify-center rounded-full bg-black px-8 py-4 text-xl font-medium text-white transition-transform hover:-translate-y-0.5">
+              {settings?.heroCtaText || 'Open WhatsApp'}
+            </a>
+            <p className="text-[1rem] uppercase tracking-[0.14em] text-[#8a8876]">
+              Available for new customers only
+            </p>
+          </motion.div>
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+          {activeTab && (
+            <span className="rounded-full border border-black/30 bg-black/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.14em] text-black">{activeTab === 'her' ? 'For Her' : 'For Him (coming soon)'}</span>
+          )}
+          <button type="button" onClick={() => onTabChange?.('her')} className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white">For Her</button>
+          <button type="button" onClick={() => onTabChange?.('him')} className="rounded-full border border-black/50 px-5 py-2 text-sm font-semibold text-black">For Him (coming soon)</button>
+        </div>
       </div>
     </section>
   );

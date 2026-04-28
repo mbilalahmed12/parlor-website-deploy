@@ -28,7 +28,9 @@ export const authAPI = {
 
 // Services endpoints
 export const servicesAPI = {
-  getAll: () => api.get('/services'),
+  getAll: (params) => api.get('/services', { params }),
+  getAllAdmin: () => api.get('/services/admin/all'),
+  getCategories: (params) => api.get('/services/categories/list', { params }),
   getById: (id) => api.get(`/services/${id}`),
   create: (data) => api.post('/services', data),
   update: (id, data) => api.put(`/services/${id}`, data),

@@ -20,8 +20,22 @@ const serviceSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['hair', 'skin', 'nails', 'makeup', 'massage', 'other'],
-    default: 'other'
+    required: true,
+    trim: true,
+    default: 'hair'
+  },
+  categoryLabel: {
+    type: String,
+    default: ''
+  },
+  audience: {
+    type: String,
+    enum: ['her', 'him'],
+    default: 'her'
+  },
+  categoryVideoUrl: {
+    type: String,
+    default: ''
   },
   image: {
     type: String,

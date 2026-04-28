@@ -1,16 +1,14 @@
 import Head from 'next/head';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';
-import Booking from '@/components/Booking';
-import Testimonials from '@/components/Testimonials';
 import Footer from '@/components/Footer';
 import { useAuthStore } from '@/lib/store';
-import { Toaster } from 'react-hot-toast';
 
 export default function Home() {
   const { hydrate } = useAuthStore();
+  const [activeTab, setActiveTab] = useState('her');
 
   useEffect(() => {
     hydrate();
@@ -19,20 +17,17 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Elite Parlor - Premium Beauty & Wellness</title>
-        <meta name="description" content="Experience luxury beauty and wellness services at Elite Parlor" />
+        <title>Elegant Edge - Where beauty is personalized</title>
+        <meta name="description" content="Elegant Edge beauty services with editable categories, offers, and custom booking flow." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-[#c3c9aa]">
         <Header />
-        <Hero />
-        <Services />
-        <Booking />
-        <Testimonials />
+        <Hero activeTab={activeTab} onTabChange={setActiveTab} />
+        <Services audience={activeTab} />
         <Footer />
-        <Toaster position="top-right" />
       </div>
     </>
   );

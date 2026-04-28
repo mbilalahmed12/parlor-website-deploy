@@ -24,11 +24,45 @@ const settingsSchema = new mongoose.Schema({
   },
   heroTitle: {
     type: String,
-    default: 'Welcome to Elite Parlor'
+    default: 'Welcome to Elegant Edge - Where beauty is personalized'
   },
   heroSubtitle: {
     type: String,
     default: 'Experience luxury and transformation'
+  },
+  heroCtaText: {
+    type: String,
+    default: 'Chat on WhatsApp'
+  },
+  offerBanner: {
+    enabled: {
+      type: Boolean,
+      default: true
+    },
+    text: {
+      type: String,
+      default: 'Offer ending soon'
+    },
+    endsAt: {
+      type: Date,
+      default: () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    }
+  },
+  whyUsTitle: {
+    type: String,
+    default: 'Why Us'
+  },
+  whyUsPoints: {
+    type: [String],
+    default: [
+      'Personalized consultation for every appointment',
+      'Premium products and hygiene-first experience',
+      'Skilled artists focused on your comfort and style'
+    ]
+  },
+  customizeCtaText: {
+    type: String,
+    default: 'Customize your need and book'
   },
   contactEmail: {
     type: String,
