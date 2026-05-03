@@ -134,7 +134,7 @@ export default function Header() {
           >
             {settings?.contactPhone || '+971 54 247 8604'}
           </a>
-          {token && (
+          {token ? (
             <>
               <Link href="/admin" className="text-sm font-semibold uppercase tracking-[0.12em] text-black underline decoration-black/40 underline-offset-4">
                 Dashboard
@@ -146,6 +146,10 @@ export default function Header() {
                 <FiLogOut /> Logout
               </button>
             </>
+          ) : (
+            <Link href="/login" className="rounded-full bg-black px-6 py-3 text-sm font-semibold text-white transition-transform hover:-translate-y-0.5">
+              Login
+            </Link>
           )}
         </motion.div>
 
@@ -188,9 +192,14 @@ export default function Header() {
               </button>
             </>
           ) : (
-            <a href={whatsappHref} className="block rounded-full bg-black px-4 py-3 text-center text-white">
-              Book Now
-            </a>
+            <>
+              <Link href="/login" className="block rounded-full bg-black px-4 py-3 text-center text-white font-semibold">
+                Login
+              </Link>
+              <a href={whatsappHref} className="block rounded-full bg-black px-4 py-3 text-center text-white">
+                Book Now
+              </a>
+            </>
           )}
         </div>
       </motion.div>

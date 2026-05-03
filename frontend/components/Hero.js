@@ -3,9 +3,6 @@ import { motion } from 'framer-motion';
 import { settingsAPI } from '@/lib/api';
 import { FaWhatsapp } from 'react-icons/fa';
 
-// Fallback portrait path; admin can override via settings.heroImageUrl
-const HERO_IMAGE = '/portrait-cutout.png';
-
 const formatTimeLeft = (targetDate) => {
   if (!targetDate) return '00 : 00 : 00 : 00';
   const ms = new Date(targetDate).getTime() - Date.now();

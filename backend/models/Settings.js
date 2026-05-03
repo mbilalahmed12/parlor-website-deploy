@@ -24,7 +24,7 @@ const settingsSchema = new mongoose.Schema({
   },
   heroImageUrl: {
     type: String,
-    default: '/portrait-cutout.png'
+    default: ''
   },
   heroTitle: {
     type: String,
