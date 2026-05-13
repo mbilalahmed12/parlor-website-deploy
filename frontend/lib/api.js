@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === 'production' ? 'https://parlor-backend.onrender.com/api' : 'http://localhost:5000/api');
+  (process.env.NODE_ENV === 'production' ? 'https://api.elegantedgeunisexsalon.in/api' : 'http://localhost:5000/api');
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -60,6 +60,7 @@ export const settingsAPI = {
   get: () => api.get('/settings'),
   update: (data) => api.put('/settings', data),
   uploadVideo: (formData) => api.post('/settings/upload-video', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadMedia: (formData) => api.post('/settings/upload-media', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 export default api;

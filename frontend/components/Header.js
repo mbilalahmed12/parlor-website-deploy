@@ -6,19 +6,22 @@ import { FaWhatsapp } from 'react-icons/fa';
 import { useAuthStore } from '@/lib/store';
 import { useRouter } from 'next/router';
 import { settingsAPI } from '@/lib/api';
+import defaultSiteSettings from '@/lib/defaultSiteSettings';
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState(defaultSiteSettings);
   const [scrolled, setScrolled] = useState(false);
   const { user, token, logout } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ENABLE_LIVE_API !== 'true') return;
+
     const fetchSettings = async () => {
       try {
         const response = await settingsAPI.get();
-        setSettings(response.data);
+        setSettings((prev) => ({ ...prev, ...response.data }));
       } catch (error) {
         // Keep default branding if settings are unavailable.
       }

@@ -1,0 +1,47 @@
+const defaultSiteSettings = {
+  parlorName: 'Elegant Edge',
+  parlorDescription: 'Premium consultations, refined artistry, and a calm luxury experience tailored to you.',
+  parlorLogoUrl: '',
+  heroVideoUrl: '',
+  heroImageUrl: '/portrait-cutout.png',
+  heroTitle: 'Welcome to Elegant Edge',
+  heroSubtitle: 'Where Beauty Is Personalized',
+  heroCtaText: 'Book on WhatsApp',
+  contactEmail: 'hello@elegantedge.com',
+  contactPhone: '+971 54 247 8604',
+  contactAddress: 'Business Bay, Dubai',
+  locationsText: 'BUSINESS BAY · DUBAI MARINA · INTERNET CITY · DIFC · ABU DHABI',
+  discountText: 'Get a discount',
+  offerBanner: {
+    enabled: true,
+    text: 'Offer ending soon',
+    endsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  whyUsTitle: 'Why Elegant Edge',
+  whyUsDescription: 'A luxury-first salon experience shaped around your features, pace, and preferences.',
+  whyUsPoints: [
+    'Personalized consultation for every appointment',
+    'Premium products and hygiene-first experience',
+    'Skilled artists focused on your comfort and style',
+  ],
+  whyUsMediaUrl: '/portrait-cutout.png',
+  whyUsMediaType: 'image',
+  whyUsSignatureDetail: 'Cinematic visuals, warm ambience, and a premium experience from the first scroll.',
+  customizeCtaText: 'Customize your need and book',
+  socialLinks: {
+    instagram: 'https://instagram.com',
+    facebook: '',
+    whatsapp: '',
+  },
+  workingHours: {
+    monday: { open: '09:00', close: '20:00' },
+    tuesday: { open: '09:00', close: '20:00' },
+    wednesday: { open: '09:00', close: '20:00' },
+    thursday: { open: '09:00', close: '20:00' },
+    friday: { open: '09:00', close: '21:00' },
+    saturday: { open: '10:00', close: '22:00' },
+    sunday: { open: '10:00', close: '19:00' },
+  },
+};
+
+export default defaultSiteSettings;

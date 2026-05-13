@@ -3,18 +3,26 @@ import { motion } from 'framer-motion';
 import { servicesAPI } from '@/lib/api';
 import { FiArrowRight } from 'react-icons/fi';
 import Link from 'next/link';
+import { defaultCategories } from '@/lib/defaultServices';
 
-export default function Services({ audience = 'her' }) {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function Services({ audience = 'her', onAudienceChange }) {
+  const [categories, setCategories] = useState(defaultCategories);
+  const [loading, setLoading] = useState(false);
 
   const fetchCategories = useCallback(async () => {
+    if (process.env.NEXT_PUBLIC_ENABLE_LIVE_API !== 'true') {
+      setCategories(defaultCategories);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await servicesAPI.getCategories({ audience });
       setCategories(response.data || []);
     } catch (error) {
       console.error('Failed to fetch service categories:', error);
+      setCategories(defaultCategories);
     } finally {
       setLoading(false);
     }
@@ -54,6 +62,26 @@ export default function Services({ audience = 'her' }) {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
+          <div className="mb-6 flex flex-wrap items-center justify-center gap-3">
+            <motion.button
+              type="button"
+              onClick={() => onAudienceChange?.('her')}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className={`rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition-all ${audience === 'her' ? 'bg-[#21170f] text-white' : 'border border-[#21170f]/20 bg-white/70 text-[#21170f]'}`}
+            >
+              For Her
+            </motion.button>
+            <motion.button
+              type="button"
+              onClick={() => onAudienceChange?.('him')}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className={`rounded-full px-5 py-3 text-sm font-semibold uppercase tracking-[0.16em] transition-all ${audience === 'him' ? 'bg-[#d6b07d] text-[#21170f]' : 'border border-[#21170f]/20 bg-white/70 text-[#21170f]'}`}
+            >
+              For Him (coming soon)
+            </motion.button>
+          </div>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#21170f]" style={{ fontFamily: 'Georgia, Times New Roman, serif' }}>
             {audience === 'him' ? 'For Him' : 'For Her'} Services
           </h2>

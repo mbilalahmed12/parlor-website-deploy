@@ -60,6 +60,10 @@ const settingsSchema = new mongoose.Schema({
     type: String,
     default: 'Why Us'
   },
+  whyUsDescription: {
+    type: String,
+    default: 'A luxury beauty experience shaped around your look, comfort, and time.'
+  },
   whyUsPoints: {
     type: [String],
     default: [
@@ -67,6 +71,19 @@ const settingsSchema = new mongoose.Schema({
       'Premium products and hygiene-first experience',
       'Skilled artists focused on your comfort and style'
     ]
+  },
+  whyUsMediaUrl: {
+    type: String,
+    default: ''
+  },
+  whyUsMediaType: {
+    type: String,
+    enum: ['image', 'video'],
+    default: 'image'
+  },
+  whyUsSignatureDetail: {
+    type: String,
+    default: 'Cinematic visuals, warm ambience, and a premium experience from the first scroll.'
   },
   customizeCtaText: {
     type: String,

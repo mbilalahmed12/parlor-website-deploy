@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { servicesAPI, settingsAPI } from '@/lib/api';
+import defaultSiteSettings from '@/lib/defaultSiteSettings';
+import defaultServices, { getStaticServicesByCategory } from '@/lib/defaultServices';
 
 const titleCase = (value = '') =>
   value
@@ -20,16 +22,25 @@ const buildWhatsAppUrl = (phone, text) => {
   return `https://wa.me/${digits}?text=${encodeURIComponent(text || 'Hi, I need a custom service package.')}`;
 };
 
-export default function ServiceCategoryPage() {
+export default function ServiceCategoryPage({ category: staticCategory = '', initialServices = [], initialSettings = defaultSiteSettings }) {
   const router = useRouter();
-  const { category, audience = 'her' } = router.query;
+  const { category: categoryQuery, audience: audienceQuery = 'her' } = router.query;
+  const category = categoryQuery || staticCategory;
+  const audience = String(audienceQuery || 'her');
 
-  const [services, setServices] = useState([]);
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState(initialServices);
+  const [settings, setSettings] = useState(initialSettings);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!category) return;
+
+    if (process.env.NEXT_PUBLIC_ENABLE_LIVE_API !== 'true') {
+      setServices(getStaticServicesByCategory(category, audience));
+      setSettings(initialSettings);
+      setLoading(false);
+      return;
+    }
 
     const fetchData = async () => {
       try {
@@ -48,7 +59,7 @@ export default function ServiceCategoryPage() {
     };
 
     fetchData();
-  }, [category, audience]);
+  }, [category, audience, initialSettings]);
 
   const backgroundVideo = useMemo(() => {
     const withCategoryVideo = services.find((service) => service.categoryVideoUrl);
@@ -155,4 +166,24 @@ export default function ServiceCategoryPage() {
       </div>
     </>
   );
+}
+
+export async function getStaticPaths() {
+  const categories = Array.from(new Set(defaultServices.filter((service) => service.audience === 'her').map((service) => service.category)));
+
+  return {
+    paths: categories.map((category) => ({ params: { category } })),
+    fallback: false,
+  };
+}
+
+export async function getStaticProps({ params }) {
+  const category = String(params?.category || '').toLowerCase();
+  return {
+    props: {
+      category,
+      initialServices: getStaticServicesByCategory(category, 'her'),
+      initialSettings: defaultSiteSettings,
+    },
+  };
 }

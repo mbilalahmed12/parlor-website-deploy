@@ -3,15 +3,18 @@ import { motion } from 'framer-motion';
 import { settingsAPI } from '@/lib/api';
 import { FiInstagram, FiFacebook, FiPhone, FiMail, FiMapPin } from 'react-icons/fi';
 import Link from 'next/link';
+import defaultSiteSettings from '@/lib/defaultSiteSettings';
 
 export default function Footer() {
-  const [settings, setSettings] = useState(null);
+  const [settings, setSettings] = useState(defaultSiteSettings);
 
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ENABLE_LIVE_API !== 'true') return;
+
     const fetchSettings = async () => {
       try {
         const response = await settingsAPI.get();
-        setSettings(response.data);
+        setSettings((prev) => ({ ...prev, ...response.data }));
       } catch (error) {
         console.error('Failed to fetch settings:', error);
       }

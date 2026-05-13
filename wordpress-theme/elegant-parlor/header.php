@@ -154,7 +154,7 @@ if (!defined('ABSPATH')) {
 
     <script>
         (function(){
-            // If the hero video fails or stalls, hide it so the background image shows
+            // Hide only on hard video failure; do not hide while buffering.
             var hero = document.getElementById('hero');
             if (!hero) return;
             var vid = hero.querySelector('.hero-video');
@@ -165,16 +165,17 @@ if (!defined('ABSPATH')) {
                 hero.classList.add('hero-video-failed');
             }
 
+            function showVideo() {
+                try { vid.style.display = 'block'; } catch(e){}
+                hero.classList.remove('hero-video-failed');
+            }
+
             vid.addEventListener('error', fallback);
-            vid.addEventListener('stalled', fallback);
-            vid.addEventListener('abort', fallback);
+            vid.addEventListener('loadeddata', showVideo);
+            vid.addEventListener('canplay', showVideo);
             // networkState 3 === NETWORK_NO_SOURCE
             if (vid.networkState === 3) fallback();
-            // If video doesn't play within 3s, hide it so poster is visible
-            var wait = setTimeout(function(){
-                if (vid.readyState < 3) fallback();
-            }, 3000);
-            vid.addEventListener('canplay', function(){ clearTimeout(wait); });
+            if (vid.readyState >= 2) showVideo();
         })();
     </script>
 

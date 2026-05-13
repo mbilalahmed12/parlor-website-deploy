@@ -43,6 +43,8 @@ export default function Settings({ onBack }) {
   const [logoZoom, setLogoZoom] = useState(1);
   const [logoCropPixels, setLogoCropPixels] = useState(null);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingHeroMedia, setUploadingHeroMedia] = useState(false);
+  const [uploadingWhyUsMedia, setUploadingWhyUsMedia] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -149,6 +151,28 @@ export default function Settings({ onBack }) {
     }
   };
 
+  const uploadMediaFile = async (file, targetField, fallbackType) => {
+    if (!file) return;
+
+    try {
+      const fd = new FormData();
+      fd.append('media', file);
+      const response = await settingsAPI.uploadMedia(fd);
+      const url = response.data?.url;
+      const type = response.data?.type || fallbackType || (file.type.startsWith('video/') ? 'video' : 'image');
+
+      setFormData((prev) => ({
+        ...prev,
+        [targetField]: url,
+        ...(targetField === 'heroVideoUrl' || targetField === 'heroImageUrl' ? {} : { whyUsMediaType: type }),
+      }));
+
+      return { url, type };
+    } catch (error) {
+      throw error;
+    }
+  };
+
   const handleLogoPaste = async (e) => {
     const pastedFile = Array.from(e.clipboardData?.items || [])
       .map((item) => (item.kind === 'file' ? item.getAsFile() : null))
@@ -224,10 +248,7 @@ export default function Settings({ onBack }) {
                   if (!file) return;
                   try {
                     setUploadingVideo(true);
-                    const fd = new FormData();
-                    fd.append('video', file);
-                    const resp = await settingsAPI.uploadVideo(fd);
-                    const url = resp.data?.url || resp.data?.settings?.heroVideoUrl;
+                    const { url } = await uploadMediaFile(file, 'heroVideoUrl', 'video');
                     setFormData((prev) => ({ ...prev, heroVideoUrl: url }));
                     toast.success('Video uploaded and set for hero');
                   } catch (err) {
@@ -353,12 +374,112 @@ export default function Settings({ onBack }) {
           </div>
 
           <div>
+            <label className="block text-sm font-semibold mb-2">Why Us Description</label>
+            <textarea
+              name="whyUsDescription"
+              value={formData.whyUsDescription || ''}
+              onChange={handleChange}
+              rows={3}
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary resize-y"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-semibold mb-2">Why Us Points (one point per line)</label>
             <textarea
               value={whyUsText}
               onChange={(e) => setWhyUsText(e.target.value)}
               rows={6}
               className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary resize-y"
+            />
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+            <div>
+              <label className="block text-sm font-semibold mb-2">Why Us Media URL</label>
+              <input
+                type="text"
+                name="whyUsMediaUrl"
+                value={formData.whyUsMediaUrl || ''}
+                onChange={handleChange}
+                placeholder="/why-us.mp4 or https://..."
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold mb-2">Media Type</label>
+              <select
+                name="whyUsMediaType"
+                value={formData.whyUsMediaType || 'image'}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary bg-white"
+              >
+                <option value="image">Image</option>
+                <option value="video">Video</option>
+              </select>
+            </div>
+            <div className="mt-3 rounded-lg border-2 border-dashed border-gray-300 p-4 text-sm text-gray-600">
+              <p className="font-medium text-gray-700">Upload Hero Image</p>
+              <p className="mt-1">Use a portrait image for the hero poster and fallback background.</p>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    setUploadingHeroMedia(true);
+                    const { url } = await uploadMediaFile(file, 'heroImageUrl', 'image');
+                    setFormData((prev) => ({ ...prev, heroImageUrl: url }));
+                    toast.success('Hero image uploaded');
+                  } catch (err) {
+                    toast.error('Failed to upload hero image');
+                    console.error(err);
+                  } finally {
+                    setUploadingHeroMedia(false);
+                  }
+                }}
+                className="mt-3 block w-full text-sm text-gray-700"
+              />
+              {uploadingHeroMedia && <p className="mt-2 text-xs text-gray-500">Uploading...</p>}
+            </div>
+          </div>
+
+          <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 text-sm text-gray-600">
+            <p className="font-medium text-gray-700">Upload Why Us Media</p>
+            <p className="mt-1">Drop a video or image of the parlor to fill the signature media box.</p>
+            <input
+              type="file"
+              accept="image/*,video/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                try {
+                  setUploadingWhyUsMedia(true);
+                  const { url, type } = await uploadMediaFile(file, 'whyUsMediaUrl');
+                  setFormData((prev) => ({ ...prev, whyUsMediaUrl: url, whyUsMediaType: type }));
+                  toast.success('Why Us media uploaded');
+                } catch (err) {
+                  toast.error('Failed to upload Why Us media');
+                  console.error(err);
+                } finally {
+                  setUploadingWhyUsMedia(false);
+                }
+              }}
+              className="mt-3 block w-full text-sm text-gray-700"
+            />
+            {uploadingWhyUsMedia && <p className="mt-2 text-xs text-gray-500">Uploading...</p>}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold mb-2">Signature Detail</label>
+            <input
+              type="text"
+              name="whyUsSignatureDetail"
+              value={formData.whyUsSignatureDetail || ''}
+              onChange={handleChange}
+              className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-primary"
             />
           </div>
 

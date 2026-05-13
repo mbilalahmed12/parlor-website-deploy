@@ -33,6 +33,31 @@ const upload = multer({
   }
 });
 
+const mediaUploadDir = path.join(__dirname, '..', 'public', 'uploads', 'media');
+fs.mkdirSync(mediaUploadDir, { recursive: true });
+
+const mediaStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, mediaUploadDir);
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname) || '';
+    const name = `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
+    cb(null, name + ext);
+  }
+});
+
+const uploadMedia = multer({
+  storage: mediaStorage,
+  limits: { fileSize: 200 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/') && !file.mimetype.startsWith('video/')) {
+      return cb(new Error('Only image or video files are allowed'));
+    }
+    cb(null, true);
+  }
+});
+
 // Get settings (public)
 router.get('/', async (req, res) => {
   try {
@@ -68,7 +93,11 @@ router.put('/', auth, authorize('owner'), async (req, res) => {
       locationsText,
       offerBanner,
       whyUsTitle,
+      whyUsDescription,
       whyUsPoints,
+      whyUsMediaUrl,
+      whyUsMediaType,
+      whyUsSignatureDetail,
       customizeCtaText,
       contactEmail,
       contactPhone,
@@ -96,7 +125,11 @@ router.put('/', auth, authorize('owner'), async (req, res) => {
     }
 
     if (whyUsTitle !== undefined) settings.whyUsTitle = whyUsTitle;
+    if (whyUsDescription !== undefined) settings.whyUsDescription = whyUsDescription;
     if (whyUsPoints !== undefined) settings.whyUsPoints = whyUsPoints;
+    if (whyUsMediaUrl !== undefined) settings.whyUsMediaUrl = whyUsMediaUrl;
+    if (whyUsMediaType !== undefined) settings.whyUsMediaType = whyUsMediaType;
+    if (whyUsSignatureDetail !== undefined) settings.whyUsSignatureDetail = whyUsSignatureDetail;
     if (customizeCtaText !== undefined) settings.customizeCtaText = customizeCtaText;
 
     if (contactEmail !== undefined) settings.contactEmail = contactEmail;
@@ -132,6 +165,18 @@ router.post('/upload-video', auth, authorize('owner'), upload.single('video'), a
     await settings.save();
 
     res.json({ message: 'Video uploaded', url, settings });
+  } catch (err) {
+    res.status(500).json({ message: 'Upload failed', error: err.message });
+  }
+});
+
+router.post('/upload-media', auth, authorize('owner'), uploadMedia.single('media'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+
+    const url = `${req.protocol}://${req.get('host')}/uploads/media/${req.file.filename}`;
+
+    res.json({ message: 'Media uploaded', url, type: req.file.mimetype.startsWith('video/') ? 'video' : 'image' });
   } catch (err) {
     res.status(500).json({ message: 'Upload failed', error: err.message });
   }

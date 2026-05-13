@@ -1,0 +1,8 @@
+open ftp.elegantedgeunisexsalon.com
+elegantedge
+Karanbabu@2102
+binary
+cd public_html
+lcd C:\Users\Muhammad BIlal Ahmed\parlor-website\frontend\out
+mput *
+quit

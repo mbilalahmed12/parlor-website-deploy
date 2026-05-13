@@ -29,6 +29,7 @@ if (empty($features)) {
     <section class="why-us-hero">
         <div class="container">
             <div class="why-us-hero-content">
+                <p class="why-us-label">Why Us</p>
                 <h1 class="why-us-main-headline" style="color:#121212 !important"><?php echo esc_html($main_headline); ?></h1>
                 <p class="why-us-main-subheadline"><?php echo esc_html($main_subheadline); ?></p>
                 <p class="why-us-description"><?php echo esc_html($main_description); ?></p>
@@ -98,6 +99,20 @@ if (empty($features)) {
         font-family: 'Poppins', sans-serif;
         color: #121212 !important;
         text-shadow: 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .why-us-label {
+        display: inline-block;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 13px;
+        font-weight: 700;
+        color: rgba(18,18,18,0.75);
+        background: rgba(255,255,255,0.55);
+        border: 1px solid rgba(18,18,18,0.12);
+        border-radius: 999px;
+        padding: 6px 14px;
+        margin-bottom: 14px;
     }
 
     .why-us-main-subheadline {
