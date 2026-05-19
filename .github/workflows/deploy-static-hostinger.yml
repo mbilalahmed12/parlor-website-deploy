@@ -28,6 +28,11 @@ jobs:
         run: npm ci --prefix frontend
 
       - name: Build website
+        env:
+          NEXT_PUBLIC_API_URL: https://api.elegantedgeunisexsalon.in/api
+          NEXT_PUBLIC_ENABLE_LIVE_API: 'true'
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: npm run build --prefix frontend
 
       - name: Upload to Hostinger via FTP

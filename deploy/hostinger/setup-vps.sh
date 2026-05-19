@@ -23,6 +23,8 @@ fi
 
 cd "$APP_DIR"
 
+export NEXT_PUBLIC_API_URL=https://api.elegantedgeunisexsalon.in/api
+
 if [ ! -f backend/.env ]; then
   cat > backend/.env <<'EOF'
 NODE_ENV=production
@@ -37,6 +39,9 @@ fi
 if [ ! -f frontend/.env.local ]; then
   cat > frontend/.env.local <<'EOF'
 NEXT_PUBLIC_API_URL=https://api.elegantedgeunisexsalon.in/api
+NEXT_PUBLIC_ENABLE_LIVE_API=true
+NEXT_PUBLIC_SUPABASE_URL=PASTE_YOUR_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=PASTE_YOUR_SUPABASE_ANON_KEY
 EOF
 fi
 

@@ -9,6 +9,14 @@
 
 ### Quick Steps:
 
+0. **Set frontend environment before building**
+   - Create/update `frontend/.env.local` with:
+     - `NEXT_PUBLIC_API_URL=https://api.elegantedgeunisexsalon.in/api`
+     - `NEXT_PUBLIC_ENABLE_LIVE_API=true`
+     - `NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co`
+     - `NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY`
+   - Then run: `npm run build --prefix frontend`
+
 1. **Login to hPanel**
    - URL: https://hpanel.hostinger.com/
    - Email: elegantedgeladiessalon5@gmail.com

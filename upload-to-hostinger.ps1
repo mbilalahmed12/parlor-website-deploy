@@ -1,12 +1,76 @@
 #Requires -Version 5.0
 
 param(
-    [string]$FtpHost = "ftp.elegantedgeunisexsalon.com",
-    [string]$FtpUser = "elegantedge",
-    [string]$FtpPass = "Karanbabu@2102",
+    [Parameter(Mandatory = $true)]
+    [string]$FtpHost,
+    [Parameter(Mandatory = $true)]
+    [string]$FtpUser,
+    [string]$FtpPass = "",
     [string]$SourceDir = "C:\Users\Muhammad BIlal Ahmed\parlor-website\frontend\out",
-    [string]$RemoteDir = "/public_html/"
+    [string]$RemoteDir = "/public_html/",
+    [switch]$SkipHostCheck
 )
+
+function Resolve-HostOrFail {
+    param([string]$HostName)
+
+    try {
+        $null = [System.Net.Dns]::GetHostAddresses($HostName)
+        return $true
+    }
+    catch {
+        throw "Could not resolve host '$HostName'. Verify FTP host in Hostinger hPanel."
+    }
+}
+
+function Ensure-RemoteDirectory {
+    param(
+        [string]$Host,
+        [System.Net.NetworkCredential]$Credential,
+        [string]$DirectoryPath
+    )
+
+    $segments = $DirectoryPath.Trim('/').Split('/') | Where-Object { $_ -and $_.Trim().Length -gt 0 }
+    if ($segments.Count -eq 0) { return }
+
+    $current = ""
+    foreach ($segment in $segments) {
+        $current = if ([string]::IsNullOrWhiteSpace($current)) { "/$segment" } else { "$current/$segment" }
+        $uri = "ftp://$Host$current"
+
+        try {
+            $mk = [System.Net.FtpWebRequest]::Create($uri)
+            $mk.Credentials = $Credential
+            $mk.Method = [System.Net.WebRequestMethods+Ftp]::MakeDirectory
+            $mk.UseBinary = $true
+            $mk.KeepAlive = $false
+            $res = $mk.GetResponse()
+            $res.Close()
+        }
+        catch {
+            # Ignore "already exists" style FTP errors and continue.
+        }
+    }
+}
+
+if (-not (Test-Path -Path $SourceDir -PathType Container)) {
+    throw "Source directory not found: $SourceDir"
+}
+
+if ([string]::IsNullOrWhiteSpace($FtpPass)) {
+    $securePass = Read-Host "Enter FTP password" -AsSecureString
+    $ptr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePass)
+    try {
+        $FtpPass = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($ptr)
+    }
+    finally {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($ptr)
+    }
+}
+
+if (-not $SkipHostCheck) {
+    Resolve-HostOrFail -HostName $FtpHost | Out-Null
+}
 
 Write-Host "=================================="
 Write-Host "Elegant Edge - Hostinger Upload"
@@ -18,8 +82,19 @@ Write-Host "Remote:  $RemoteDir"
 Write-Host ""
 
 $credential = New-Object System.Net.NetworkCredential($FtpUser, $FtpPass)
+$normalizedRemoteRoot = "/" + ($RemoteDir.Trim('/'))
+
 $files = Get-ChildItem -Path $SourceDir -Recurse -File
 $total = $files.Count
+
+if ($total -eq 0) {
+    throw "No files found in source directory: $SourceDir"
+}
+
+Write-Host "Ensuring remote root exists: $normalizedRemoteRoot"
+Ensure-RemoteDirectory -Host $FtpHost -Credential $credential -DirectoryPath $normalizedRemoteRoot
+
+$files = Get-ChildItem -Path $SourceDir -Recurse -File
 $uploaded = 0
 $failed = 0
 
@@ -27,17 +102,20 @@ Write-Host "Uploading $total files..."
 Write-Host ""
 
 foreach ($file in $files) {
-    $relative = $file.FullName.Substring($SourceDir.Length).Replace('\', '/')
-    $remotePath = "$RemoteDir$relative"
+    $relative = $file.FullName.Substring($SourceDir.Length).TrimStart('\', '/').Replace('\', '/')
+    $remotePath = "$normalizedRemoteRoot/$relative"
     $remoteDir = Split-Path $remotePath -Parent
     $ftpUri = "ftp://$FtpHost$remotePath"
     
     try {
+        Ensure-RemoteDirectory -Host $FtpHost -Credential $credential -DirectoryPath $remoteDir
+
         Write-Host "Uploading: $relative" -ForegroundColor Gray
         $request = [System.Net.FtpWebRequest]::Create($ftpUri)
         $request.Credentials = $credential
         $request.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
         $request.UseBinary = $true
+        $request.KeepAlive = $false
         
         $fileStream = [System.IO.File]::OpenRead($file.FullName)
         $reqStream = $request.GetRequestStream()

@@ -61,6 +61,9 @@ openssl rand -base64 48
 ```bash
 cat > frontend/.env.local << 'EOF'
 NEXT_PUBLIC_API_URL=https://api.elegantedgeunisexsalon.in/api
+NEXT_PUBLIC_ENABLE_LIVE_API=true
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 EOF
 ```
 
@@ -70,6 +73,17 @@ EOF
 npm install --prefix backend
 npm install --prefix frontend
 npm run build --prefix frontend
+```
+
+One-command alternative (recommended for updates):
+
+```bash
+chmod +x deploy/hostinger/rebuild-frontend.sh
+export NEXT_PUBLIC_API_URL=https://api.elegantedgeunisexsalon.in/api
+export NEXT_PUBLIC_ENABLE_LIVE_API=true
+export NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+export NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+./deploy/hostinger/rebuild-frontend.sh
 ```
 
 ## 8) Start Both Apps with PM2

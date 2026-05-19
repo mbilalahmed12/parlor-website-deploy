@@ -29,6 +29,12 @@ jobs:
           set -e
           cd /var/www/parlor-website
           git pull origin main
+          cat > frontend/.env.local <<'EOT'
+          NEXT_PUBLIC_API_URL=https://api.elegantedgeunisexsalon.in/api
+          NEXT_PUBLIC_ENABLE_LIVE_API=true
+          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          EOT
           npm install --prefix backend
           npm install --prefix frontend
           npm run build --prefix frontend
