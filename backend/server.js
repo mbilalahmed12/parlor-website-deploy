@@ -27,13 +27,16 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-if (!process.env.MONGODB_URI) {
-  console.error('Missing required environment variable: MONGODB_URI');
+if (!process.env.JWT_SECRET) {
+  console.error('Missing required environment variable: JWT_SECRET');
   process.exit(1);
 }
 
-if (!process.env.JWT_SECRET) {
-  console.error('Missing required environment variable: JWT_SECRET');
+const hasMongo = !!process.env.MONGODB_URI;
+const hasSupabase = !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+if (!hasMongo && !hasSupabase) {
+  console.error('Missing required database configuration: set MONGODB_URI or SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
 }
 
@@ -66,14 +69,18 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log('MongoDB connected');
+    if (hasMongo) {
+      await mongoose.connect(process.env.MONGODB_URI);
+      console.log('MongoDB connected');
+    } else {
+      console.log('No MONGODB_URI provided — running in Supabase-only mode');
+    }
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (err) {
-    console.error('MongoDB connection error:', err.message);
+    console.error('Startup error:', err.message);
     process.exit(1);
   }
 };

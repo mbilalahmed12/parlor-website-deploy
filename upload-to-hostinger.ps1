@@ -7,7 +7,7 @@ param(
     [string]$FtpUser,
     [string]$FtpPass = "",
     [string]$SourceDir = "C:\Users\Muhammad BIlal Ahmed\parlor-website\frontend\out",
-    [string]$RemoteDir = "/public_html/",
+        [string]$RemoteDir = "/public_html/",
     [switch]$SkipHostCheck
 )
 
@@ -25,7 +25,7 @@ function Resolve-HostOrFail {
 
 function Ensure-RemoteDirectory {
     param(
-        [string]$Host,
+        [string]$FtpHost,
         [System.Net.NetworkCredential]$Credential,
         [string]$DirectoryPath
     )
@@ -36,7 +36,7 @@ function Ensure-RemoteDirectory {
     $current = ""
     foreach ($segment in $segments) {
         $current = if ([string]::IsNullOrWhiteSpace($current)) { "/$segment" } else { "$current/$segment" }
-        $uri = "ftp://$Host$current"
+        $uri = "ftp://$FtpHost$current"
 
         try {
             $mk = [System.Net.FtpWebRequest]::Create($uri)
@@ -78,11 +78,15 @@ Write-Host "=================================="
 Write-Host ""
 Write-Host "FTP Host: $FtpHost"
 Write-Host "Source:  $SourceDir"
-Write-Host "Remote:  $RemoteDir"
+if ([string]::IsNullOrWhiteSpace($RemoteDir)) {
+    Write-Host "Remote:  /"
+} else {
+    Write-Host "Remote:  $RemoteDir"
+}
 Write-Host ""
 
 $credential = New-Object System.Net.NetworkCredential($FtpUser, $FtpPass)
-$normalizedRemoteRoot = "/" + ($RemoteDir.Trim('/'))
+$normalizedRemoteRoot = $RemoteDir.Trim('/').Replace('\\', '/')
 
 $files = Get-ChildItem -Path $SourceDir -Recurse -File
 $total = $files.Count
@@ -91,8 +95,12 @@ if ($total -eq 0) {
     throw "No files found in source directory: $SourceDir"
 }
 
-Write-Host "Ensuring remote root exists: $normalizedRemoteRoot"
-Ensure-RemoteDirectory -Host $FtpHost -Credential $credential -DirectoryPath $normalizedRemoteRoot
+if ([string]::IsNullOrWhiteSpace($normalizedRemoteRoot)) {
+    Write-Host "Ensuring remote root exists: /"
+} else {
+    Write-Host "Ensuring remote root exists: /$normalizedRemoteRoot"
+    Ensure-RemoteDirectory -FtpHost $FtpHost -Credential $credential -DirectoryPath "/$normalizedRemoteRoot"
+}
 
 $files = Get-ChildItem -Path $SourceDir -Recurse -File
 $uploaded = 0
@@ -103,12 +111,12 @@ Write-Host ""
 
 foreach ($file in $files) {
     $relative = $file.FullName.Substring($SourceDir.Length).TrimStart('\', '/').Replace('\', '/')
-    $remotePath = "$normalizedRemoteRoot/$relative"
+        $remotePath = if ([string]::IsNullOrWhiteSpace($normalizedRemoteRoot)) { "/$relative" } else { "/$normalizedRemoteRoot/$relative" }
     $remoteDir = Split-Path $remotePath -Parent
     $ftpUri = "ftp://$FtpHost$remotePath"
     
     try {
-        Ensure-RemoteDirectory -Host $FtpHost -Credential $credential -DirectoryPath $remoteDir
+        Ensure-RemoteDirectory -FtpHost $FtpHost -Credential $credential -DirectoryPath $remoteDir
 
         Write-Host "Uploading: $relative" -ForegroundColor Gray
         $request = [System.Net.FtpWebRequest]::Create($ftpUri)

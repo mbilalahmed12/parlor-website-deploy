@@ -44,9 +44,9 @@
 ### Important Notes:
 
 1. **Static Export Format**
-   - The site is exported as a completely static website
-   - No backend server required
-   - All pages are pre-rendered HTML
+   - The public site is exported as static files for Hostinger shared hosting
+   - The admin/API layer still needs the separate Express + Supabase backend on a VPS or Node-capable Hostinger plan
+   - All public pages are pre-rendered HTML
 
 2. **Domain Registration**
    - Complete the domain registration for `elegantedgeunisexsalon.com` in hPanel
@@ -60,9 +60,8 @@
    - No database or backend API is required for the public pages
 
 4. **Admin Features**
-   - Admin dashboard is included but requires backend API for persistence
-   - For demo purposes, the admin UI is available but changes won't persist without a backend
-   - Backend setup would require additional configuration
+   - Admin dashboard is included and persists through the Express API backed by Supabase
+   - Point `NEXT_PUBLIC_API_URL` at the backend API before building the frontend
 
 ## Alternative: FTP Upload
 

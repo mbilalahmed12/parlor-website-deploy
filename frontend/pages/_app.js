@@ -7,6 +7,7 @@ export default function App({ Component, pageProps }) {
   const hydrate = useAuthStore((state) => state.hydrate);
 
   useEffect(() => {
+    // Initialize auth state
     hydrate();
   }, [hydrate]);
 

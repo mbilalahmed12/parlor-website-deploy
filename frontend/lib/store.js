@@ -3,6 +3,7 @@ import { authAPI } from './api';
 
 export const useAuthStore = create((set) => ({
   user: null,
+  session: null,
   token: null,
   isLoading: false,
   error: null,
@@ -10,51 +11,87 @@ export const useAuthStore = create((set) => ({
   login: async (email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await authAPI.login({ email, password });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      set({ token, user, isLoading: false });
-      return user;
+      const { data } = await authAPI.login({ email, password });
+      const token = data?.token || null;
+      const userProfile = data?.user || null;
+      set({
+        session: null,
+        token,
+        user: userProfile,
+        isLoading: false,
+      });
+      if (typeof window !== 'undefined') {
+        if (token) localStorage.setItem('token', token);
+        else localStorage.removeItem('token');
+      }
+      return userProfile;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Login failed';
+      const errorMessage = error.message || 'Login failed';
       set({ error: errorMessage, isLoading: false });
       throw error;
     }
   },
 
-  register: async (name, email, password) => {
+  register: async (fullName, email, password) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await authAPI.register({ name, email, password });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      set({ token, user, isLoading: false });
-      return user;
+      const { data } = await authAPI.register({ name: fullName, email, password });
+      const token = data?.token || null;
+      const userProfile = data?.user || null;
+      set({
+        session: null,
+        token,
+        user: userProfile,
+        isLoading: false,
+      });
+      if (typeof window !== 'undefined') {
+        if (token) localStorage.setItem('token', token);
+        else localStorage.removeItem('token');
+      }
+      return userProfile;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Registration failed';
+      const errorMessage = error.message || 'Registration failed';
       set({ error: errorMessage, isLoading: false });
       throw error;
     }
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-    set({ user: null, token: null });
+  logout: async () => {
+    try {
+      set({ user: null, session: null, token: null });
+      if (typeof window !== 'undefined') localStorage.removeItem('token');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   },
 
-  hydrate: () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      set({ token, isLoading: true });
-      authAPI
-        .me()
-        .then((response) => {
-          set({ user: response.data.user, isLoading: false });
-        })
-        .catch(() => {
-          localStorage.removeItem('token');
-          set({ token: null, user: null, isLoading: false });
-        });
+  // Initialize auth state on app load
+  hydrate: async () => {
+    set({ isLoading: true });
+    try {
+      if (typeof window === 'undefined') {
+        set({ session: null, token: null, isLoading: false });
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        set({ session: null, token: null, user: null, isLoading: false });
+        return;
+      }
+
+      set({ token, session: null });
+
+      const response = await authAPI.me();
+      const userProfile = response?.data?.user || null;
+      if (userProfile) {
+        set({ user: userProfile, session: null, token, isLoading: false });
+      } else {
+        set({ user: null, session: null, token, isLoading: false });
+      }
+    } catch (error) {
+      console.error('Hydrate error:', error);
+      set({ session: null, token: localStorage.getItem('token'), user: null, isLoading: false });
     }
   },
 }));

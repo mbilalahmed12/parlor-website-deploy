@@ -12,7 +12,9 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState(defaultSiteSettings);
   const [scrolled, setScrolled] = useState(false);
-  const { user, token, logout } = useAuthStore();
+  const { user, session, token, logout } = useAuthStore();
+  const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const hasAuth = Boolean(session?.access_token || token || storedToken);
   const router = useRouter();
 
   useEffect(() => {
@@ -140,7 +142,7 @@ export default function Header() {
           <Link href="/login" className="rounded-full border border-black/30 bg-white px-5 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-black transition-transform hover:-translate-y-0.5">
             Admin Login
           </Link>
-          {token ? (
+          {hasAuth ? (
             <>
               <Link href="/admin" className="text-sm font-semibold uppercase tracking-[0.12em] text-black underline decoration-black/40 underline-offset-4">
                 Dashboard
@@ -192,7 +194,7 @@ export default function Header() {
           >
             Admin Login
           </Link>
-          {token ? (
+          {hasAuth ? (
             <>
               <Link href="/admin" className="block text-sm font-semibold uppercase tracking-[0.12em] text-black">
                 Dashboard

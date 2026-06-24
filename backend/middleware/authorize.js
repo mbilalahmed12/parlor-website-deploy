@@ -1,16 +1,26 @@
-const User = require('../models/User');
+const { supabase, toApiUser } = require('../lib/supabase');
 
 const authorize = (...allowedRoles) => {
   return async (req, res, next) => {
     try {
-      const user = await User.findById(req.userId).select('role email name');
+      const { data: userRow, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', req.userId)
+        .maybeSingle();
 
-      if (!user) {
+      if (error) {
+        return res.status(500).json({ message: 'Authorization failed', error: error.message });
+      }
+
+      if (!userRow) {
         return res.status(401).json({ message: 'User not found for this token' });
       }
 
+      const user = toApiUser(userRow);
+
       req.user = {
-        id: user._id,
+        id: user.id,
         role: user.role,
         email: user.email,
         name: user.name,

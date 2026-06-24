@@ -31,7 +31,11 @@ export default function Register() {
     try {
       await register(formData.name, formData.email, formData.password);
       toast.success('Registration successful!');
-      router.push('/admin');
+      if (typeof window !== 'undefined') {
+        window.location.assign('/admin/');
+        return;
+      }
+      await router.replace('/admin');
     } catch (error) {
       toast.error(error.message || 'Registration failed');
     } finally {

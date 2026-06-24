@@ -1,9 +1,10 @@
 const express = require('express');
-const Review = require('../models/Review');
 const auth = require('../middleware/auth');
 const authorize = require('../middleware/authorize');
 const { body, validationResult } = require('express-validator');
 const router = express.Router();
+
+const { supabase, toApiReview, toApiService, handleSupabaseError } = require('../lib/supabase');
 
 // Submit review (public)
 router.post('/', [
@@ -13,25 +14,30 @@ router.post('/', [
   body('comment').notEmpty().isLength({ min: 10, max: 1000 })
 ], async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   try {
     const { clientName, clientEmail, rating, comment, service, image } = req.body;
 
-    const review = new Review({
-      clientName,
-      clientEmail,
+    const payload = {
+      client_name: clientName,
+      client_email: clientEmail,
       rating,
       comment,
-      service,
-      image,
-      approved: false
-    });
+      service_id: service || null,
+      image: image || null,
+      approved: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
 
-    await review.save();
-    res.status(201).json({ message: 'Review submitted successfully! It will be visible after admin approval.', review });
+    const { data, error } = await supabase.from('reviews').insert(payload).select().single();
+    if (error) {
+      const err = handleSupabaseError(error, 'Error submitting review');
+      return res.status(err.status).json({ message: err.message });
+    }
+
+    res.status(201).json({ message: 'Review submitted successfully! It will be visible after admin approval.', review: toApiReview(data) });
   } catch (error) {
     res.status(400).json({ message: 'Error submitting review', error: error.message });
   }
@@ -40,8 +46,18 @@ router.post('/', [
 // Get approved reviews (public)
 router.get('/', async (req, res) => {
   try {
-    const reviews = await Review.find({ approved: true }).populate('service').sort({ publishedAt: -1 });
-    res.json(reviews);
+    const { data, error } = await supabase.from('reviews').select().eq('approved', true).order('published_at', { ascending: false });
+    if (error) throw error;
+
+    const serviceIds = [...new Set(data.map((r) => r.service_id).filter(Boolean))];
+    const servicesMap = {};
+    if (serviceIds.length) {
+      const sv = await supabase.from('services').select().in('id', serviceIds);
+      if (!sv.error && sv.data) sv.data.forEach((s) => (servicesMap[s.id] = s));
+    }
+
+    const mapped = data.map((row) => toApiReview(row, servicesMap[row.service_id] || null));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -50,8 +66,18 @@ router.get('/', async (req, res) => {
 // Get all reviews including pending (admin only)
 router.get('/admin/all', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
-    const reviews = await Review.find().populate('service').sort({ createdAt: -1 });
-    res.json(reviews);
+    const { data, error } = await supabase.from('reviews').select().order('created_at', { ascending: false });
+    if (error) throw error;
+
+    const serviceIds = [...new Set(data.map((r) => r.service_id).filter(Boolean))];
+    const servicesMap = {};
+    if (serviceIds.length) {
+      const sv = await supabase.from('services').select().in('id', serviceIds);
+      if (!sv.error && sv.data) sv.data.forEach((s) => (servicesMap[s.id] = s));
+    }
+
+    const mapped = data.map((row) => toApiReview(row, servicesMap[row.service_id] || null));
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
@@ -60,15 +86,18 @@ router.get('/admin/all', auth, authorize('owner', 'admin'), async (req, res) => 
 // Approve review (admin only)
 router.put('/:id/approve', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
-    const review = await Review.findById(req.params.id);
-    if (!review) return res.status(404).json({ message: 'Review not found' });
+    const updates = {
+      approved: true,
+      approved_at: new Date().toISOString(),
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
 
-    review.approved = true;
-    review.approvedAt = Date.now();
-    review.publishedAt = Date.now();
+    const { data, error } = await supabase.from('reviews').update(updates).eq('id', req.params.id).select().maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ message: 'Review not found' });
 
-    await review.save();
-    res.json({ message: 'Review approved and published!', review });
+    res.json({ message: 'Review approved and published!', review: toApiReview(data) });
   } catch (error) {
     res.status(400).json({ message: 'Error approving review', error: error.message });
   }
@@ -77,8 +106,9 @@ router.put('/:id/approve', auth, authorize('owner', 'admin'), async (req, res) =
 // Reject/Delete review (admin only)
 router.delete('/:id', auth, authorize('owner', 'admin'), async (req, res) => {
   try {
-    const review = await Review.findByIdAndDelete(req.params.id);
-    if (!review) return res.status(404).json({ message: 'Review not found' });
+    const { data, error } = await supabase.from('reviews').delete().eq('id', req.params.id).select().maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ message: 'Review not found' });
     res.json({ message: 'Review deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting review', error: error.message });

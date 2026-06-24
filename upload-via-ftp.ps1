@@ -97,8 +97,8 @@ foreach ($File in $FilesToUpload) {
     $RemotePath = "$RemoteDir$RelativePath"
     
     # Create directory structure if needed
-    $RemoteDir = Split-Path $RemotePath -Parent
-    Create-FtpDirectory $RemoteDir $FtpHost $Credential
+    $RemoteParentDir = Split-Path $RemotePath -Parent
+    Create-FtpDirectory $RemoteParentDir $FtpHost $Credential
     
     # Upload the file
     if (Upload-FileToFtp $File.FullName $RemotePath $FtpHost $Credential) {

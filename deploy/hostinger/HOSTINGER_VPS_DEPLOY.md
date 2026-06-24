@@ -1,8 +1,8 @@
 # Hostinger VPS Deployment (Backend + Frontend)
 
 This guide deploys:
-- Frontend (Next.js) at `https://elegantedgeunisexsalon.in`
-- Backend (Express API) at `https://api.elegantedgeunisexsalon.in`
+- Frontend (static Next.js export) at `https://elegantedgeunisexsalon.in`
+- Backend (Express API backed by Supabase) at `https://api.elegantedgeunisexsalon.in`
 
 ## 1) DNS Setup in Hostinger hPanel
 
@@ -43,7 +43,9 @@ cd parlor-website
 cat > backend/.env << 'EOF'
 NODE_ENV=production
 PORT=5000
-MONGODB_URI=PASTE_YOUR_MONGODB_URI
+SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_STORAGE_BUCKET=user-uploads
 JWT_SECRET=PASTE_STRONG_SECRET
 JWT_EXPIRE=7d
 CORS_ORIGIN=https://elegantedgeunisexsalon.in,https://www.elegantedgeunisexsalon.in
@@ -175,3 +177,4 @@ pm2 restart parlor-frontend
 - Frontend logs: `pm2 logs parlor-frontend`
 - Nginx logs: `/var/log/nginx/error.log`
 - If CORS fails, re-check `CORS_ORIGIN` in `backend/.env`
+- If uploads fail, confirm the Supabase bucket name is `user-uploads` and the service role key is set

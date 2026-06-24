@@ -25,7 +25,11 @@ export default function Login() {
     try {
       await login(formData.email, formData.password);
       toast.success('Login successful!');
-      router.push('/admin');
+      if (typeof window !== 'undefined') {
+        window.location.assign('/admin/');
+        return;
+      }
+      await router.replace('/admin');
     } catch (error) {
       toast.error(error.message || 'Login failed');
     } finally {

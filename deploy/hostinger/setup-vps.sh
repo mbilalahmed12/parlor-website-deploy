@@ -29,7 +29,9 @@ if [ ! -f backend/.env ]; then
   cat > backend/.env <<'EOF'
 NODE_ENV=production
 PORT=5000
-MONGODB_URI=PASTE_YOUR_MONGODB_URI
+SUPABASE_URL=PASTE_YOUR_SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY=PASTE_YOUR_SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_STORAGE_BUCKET=user-uploads
 JWT_SECRET=PASTE_A_LONG_RANDOM_SECRET
 JWT_EXPIRE=7d
 CORS_ORIGIN=https://elegantedgeunisexsalon.in,https://www.elegantedgeunisexsalon.in

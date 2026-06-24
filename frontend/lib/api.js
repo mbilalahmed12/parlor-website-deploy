@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const DEFAULT_API_BASE_URL = 'https://parlor-backend.onrender.com/api';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === 'production' ? 'https://api.elegantedgeunisexsalon.in/api' : 'http://localhost:5000/api');
+  (process.env.NODE_ENV === 'production' ? DEFAULT_API_BASE_URL : 'http://localhost:5000/api');
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

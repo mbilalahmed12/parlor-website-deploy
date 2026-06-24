@@ -24,16 +24,23 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isDesktop, setIsDesktop] = useState(false);
-  const { user, token, logout } = useAuthStore();
+  const [authChecked, setAuthChecked] = useState(false);
+  const { user, session, token, logout } = useAuthStore();
   const router = useRouter();
   const isOwner = user?.role === 'owner';
   const availableTabs = tabs.filter((tab) => !tab.ownerOnly || isOwner);
+  const storedToken = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const hasAuth = Boolean(session?.access_token || token || storedToken);
 
   useEffect(() => {
-    if (!token) {
-      router.push('/login');
+    setAuthChecked(true);
+  }, []);
+
+  useEffect(() => {
+    if (authChecked && !hasAuth) {
+      router.replace('/login');
     }
-  }, [token, router]);
+  }, [authChecked, hasAuth, router]);
 
   useEffect(() => {
     if (!availableTabs.some((tab) => tab.id === activeTab)) {
@@ -64,7 +71,7 @@ export default function Admin() {
     toast.success('Logged out successfully');
   };
 
-  if (!token) return null;
+  if (!authChecked || !hasAuth) return null;
 
   return (
     <>
